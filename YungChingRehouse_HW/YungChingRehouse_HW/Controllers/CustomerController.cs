@@ -17,9 +17,9 @@ namespace YungChingRehouse_HW.Controllers
         /// 查詢特定客戶資訊，router最後帶CustomerID
         /// router : GET api/Customer/cusid=XXX
         /// </summary>
-        /// <returns></returns>
+        /// <returns> 如果查無資料會回傳NULL </returns>
         [HttpGet]
-        public ApiResult< List<Customers> > Get(string cusid)
+        public ApiResult< List<Customers> > Get([FromUri]string cusid)
         {
             SqlConnection sqlconn = new SqlConnection( Properties.Settings.Default.DBConnStr );
 
@@ -131,23 +131,36 @@ namespace YungChingRehouse_HW.Controllers
 
             try
             {
-                sqlconn.Open();
-                sqlcom = new SqlCommand( sqlcmd ,sqlconn );
-                sqlcom.CommandTimeout = 1000;
+                //先確認這個CustomerID是否存在
+                //存在就是新增失敗，回傳CustomerID已經存在訊息
+                //不存在就新增
+                ApiResult<List<Customers>> checkcusid = Get(_newcus.CustomerID);
 
-                sqlcom.Parameters.AddWithValue("@CustomerID" , _newcus.CustomerID);
-                sqlcom.Parameters.AddWithValue("@CompanyName", _newcus.CompanyName);
-                sqlcom.Parameters.AddWithValue("@ContactName", _newcus.ContactName);
-                sqlcom.Parameters.AddWithValue("@ContactTitle", _newcus.ContactTitle);
-                sqlcom.Parameters.AddWithValue("@Address", _newcus.Address);
-                sqlcom.Parameters.AddWithValue("@City", _newcus.City);
-                sqlcom.Parameters.AddWithValue("@Region", _newcus.Region);
-                sqlcom.Parameters.AddWithValue("@PostalCode", _newcus.PostalCode);
-                sqlcom.Parameters.AddWithValue("@Country", _newcus.Country);
-                sqlcom.Parameters.AddWithValue("@Phone", _newcus.Phone);
-                sqlcom.Parameters.AddWithValue("@Fax", _newcus.Fax);
+                if ( checkcusid.Data == null )
+                {
+                    sqlconn.Open();
+                    sqlcom = new SqlCommand(sqlcmd, sqlconn);
+                    sqlcom.CommandTimeout = 1000;
 
-                sqlcom.ExecuteNonQuery();
+                    sqlcom.Parameters.AddWithValue("@CustomerID", _newcus.CustomerID);
+                    sqlcom.Parameters.AddWithValue("@CompanyName", _newcus.CompanyName);
+                    sqlcom.Parameters.AddWithValue("@ContactName", _newcus.ContactName);
+                    sqlcom.Parameters.AddWithValue("@ContactTitle", _newcus.ContactTitle);
+                    sqlcom.Parameters.AddWithValue("@Address", _newcus.Address);
+                    sqlcom.Parameters.AddWithValue("@City", _newcus.City);
+                    sqlcom.Parameters.AddWithValue("@Region", _newcus.Region);
+                    sqlcom.Parameters.AddWithValue("@PostalCode", _newcus.PostalCode);
+                    sqlcom.Parameters.AddWithValue("@Country", _newcus.Country);
+                    sqlcom.Parameters.AddWithValue("@Phone", _newcus.Phone);
+                    sqlcom.Parameters.AddWithValue("@Fax", _newcus.Fax);
+
+                    sqlcom.ExecuteNonQuery();
+                }
+                else
+                {
+                    result.IsSucc = false;
+                    result.ErrorMsg = "This CustomerID already exists.";
+                }
             }
             catch (Exception ex)
             {
@@ -189,23 +202,36 @@ namespace YungChingRehouse_HW.Controllers
 
             try
             {
-                sqlconn.Open();
-                sqlcom = new SqlCommand(sqlcmd, sqlconn);
-                sqlcom.CommandTimeout = 1000;
+                //先確認這個CustomerID是否存在
+                //存在就是能更新，回傳更新是否成功
+                //不存在就不能更新，回傳不存在訊息
+                ApiResult<List<Customers>> checkcusid = Get( _oldcus.CustomerID );
 
-                sqlcom.Parameters.AddWithValue("@CustomerID", _oldcus.CustomerID);
-                sqlcom.Parameters.AddWithValue("@CompanyName", _oldcus.CompanyName);
-                sqlcom.Parameters.AddWithValue("@ContactName", _oldcus.ContactName);
-                sqlcom.Parameters.AddWithValue("@ContactTitle", _oldcus.ContactTitle);
-                sqlcom.Parameters.AddWithValue("@Address", _oldcus.Address);
-                sqlcom.Parameters.AddWithValue("@City", _oldcus.City);
-                sqlcom.Parameters.AddWithValue("@Region", _oldcus.Region);
-                sqlcom.Parameters.AddWithValue("@PostalCode", _oldcus.PostalCode);
-                sqlcom.Parameters.AddWithValue("@Country", _oldcus.Country);
-                sqlcom.Parameters.AddWithValue("@Phone", _oldcus.Phone);
-                sqlcom.Parameters.AddWithValue("@Fax", _oldcus.Fax);
+                if (checkcusid.Data == null )
+                {
+                    result.IsSucc = false;
+                    result.ErrorMsg = "This CustomerID doesn't exists.You can't update.";
+                }
+                else
+                {
+                    sqlconn.Open();
+                    sqlcom = new SqlCommand(sqlcmd, sqlconn);
+                    sqlcom.CommandTimeout = 1000;
 
-                sqlcom.ExecuteNonQuery();
+                    sqlcom.Parameters.AddWithValue("@CustomerID", _oldcus.CustomerID);
+                    sqlcom.Parameters.AddWithValue("@CompanyName", _oldcus.CompanyName);
+                    sqlcom.Parameters.AddWithValue("@ContactName", _oldcus.ContactName);
+                    sqlcom.Parameters.AddWithValue("@ContactTitle", _oldcus.ContactTitle);
+                    sqlcom.Parameters.AddWithValue("@Address", _oldcus.Address);
+                    sqlcom.Parameters.AddWithValue("@City", _oldcus.City);
+                    sqlcom.Parameters.AddWithValue("@Region", _oldcus.Region);
+                    sqlcom.Parameters.AddWithValue("@PostalCode", _oldcus.PostalCode);
+                    sqlcom.Parameters.AddWithValue("@Country", _oldcus.Country);
+                    sqlcom.Parameters.AddWithValue("@Phone", _oldcus.Phone);
+                    sqlcom.Parameters.AddWithValue("@Fax", _oldcus.Fax);
+
+                    sqlcom.ExecuteNonQuery();
+                }               
             }
             catch (Exception ex)
             {
@@ -235,13 +261,26 @@ namespace YungChingRehouse_HW.Controllers
 
             try
             {
-                sqlconn.Open();
-                sqlcom = new SqlCommand(sqlcmd, sqlconn);
-                sqlcom.CommandTimeout = 1000;
+                //先確認這個CustomerID是否存在
+                //存在就是能刪除失敗
+                //不存在就是不能刪除
+                ApiResult<List<Customers>> checkcusid = Get(_oldcus.CustomerID);
 
-                sqlcom.Parameters.AddWithValue("@CustomerID", _oldcus.CustomerID);
+                if (checkcusid.Data == null)
+                {
+                    result.IsSucc = false;
+                    result.ErrorMsg = "This CustomerID doesn't exists.You can't delete.";
+                }
+                else
+                {
+                    sqlconn.Open();
+                    sqlcom = new SqlCommand(sqlcmd, sqlconn);
+                    sqlcom.CommandTimeout = 1000;
 
-                sqlcom.ExecuteNonQuery();
+                    sqlcom.Parameters.AddWithValue("@CustomerID", _oldcus.CustomerID);
+
+                    sqlcom.ExecuteNonQuery();
+                }       
             }
             catch (Exception ex)
             {
