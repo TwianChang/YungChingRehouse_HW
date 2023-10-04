@@ -175,7 +175,11 @@ namespace YungChingRehouse_HW.Controllers
             return result;
         }
 
-        // Patch api/values/
+        /// <summary>
+        /// 修改客戶資訊
+        /// </summary>
+        /// <param name="_oldcus"></param>
+        /// <returns></returns>
         [HttpPatch]
         public ApiResult<List<Customers>> Patch([FromBody] Customers _oldcus)
         {
@@ -246,7 +250,11 @@ namespace YungChingRehouse_HW.Controllers
             return result;
         }
 
-        // DELETE api/values/5
+        /// <summary>
+        /// 刪除客戶資訊
+        /// </summary>
+        /// <param name="_oldcus"></param>
+        /// <returns></returns>
         [HttpDelete]
         public ApiResult<List<Customers>> Delete([FromBody] Customers _oldcus)
         {
